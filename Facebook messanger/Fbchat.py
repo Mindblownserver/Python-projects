@@ -602,7 +602,6 @@ submenu2.add_command(label="Change colour", command=open_top_levl_colours)
 submenu2.add_command(label="send message to all", command=open_top_level_send)
 submenu.add_command(label="logout", command=win.quit)
 # Taking photo from path
-photo = tk.PhotoImage(file="/home/yassine/Desktop/python/samples/PNG/Send.png")
 name = ""
 identification = 0
 
@@ -639,7 +638,7 @@ frame_frnds = tk.Frame(win)
 lbl = tk.Label(win, text="Welcome!!")
 entry_text = tk.Entry(frame_down, width=50)
 text_bfr_entry = tk.Label(frame_down, text="Text")
-send_butn = tk.Button(frame_down, image=photo, command=send_message)
+send_butn = tk.Button(frame_down, text='Send', command=send_message)
 frnd_img = tk.Button(frame_frnds, image="", relief=tk.SUNKEN)
 Label_warning = tk.Label(
     win,
