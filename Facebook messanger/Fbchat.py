@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-#This can't work if you don't have PIL and fbchat module..Highly recommanded to run the script in python 3x
+
 # Importing some stuff
 import fbchat
 from fbchat import Client
-from getpass import getpass
+from ttkthemes import ThemedStyle
 
 try:
     import tkinter as tk
@@ -500,18 +500,38 @@ colours = [
     "gray99",
 ]
 # Taking your account information
-name = str(input("type your facebook name: "))
-client = fbchat.Client(name, getpass())
+wn = tk.Tk()
+wn.title('Information')
+name = ''
+password = ''
+def submit():
+    global name, password
+    name = name_entry.get()
+    password = pass_entry.get()
+    wn.after(500, wn.destroy)
+
+name_entry=ttk.Entry(wn)
+pass_entry = ttk.Entry(wn)
+sumbit_btn = ttk.Button(wn, text='confirm', command=submit)
+name_entry.pack()
+pass_entry.pack()
+sumbit_btn.pack(side=tk.BOTTOM)
+name_entry.insert(3, "Facebook username")
+pass_entry.insert(3, 'Facebook password')
+wn.mainloop()
+client = fbchat.Client(name, password)
 users = client.fetchAllUsers()
 print(len([user.name for user in users]))
 
 # Making the window
 win = tk.Tk()
 win.title(name)
+style = ThemedStyle(win)
+style.set_theme('breeze')
 win.geometry("750x670")
 win.resizable(False, False)
 
-# Doing colors , you can't really send it coloured though :(
+# Doing colors , you can't really be sent coloured though :(
 def open_top_levl_colours():
     Top = tk.Toplevel(win)
     Top.geometry("300x400")
@@ -525,7 +545,7 @@ def open_top_levl_colours():
         entry_text["fg"] = color
         Top.destroy()
 
-    validate_btn = tk.Button(Top, text="Validate", command=validate)
+    validate_btn = ttk.Button(Top, text="Validate", command=validate)
     colour = tk.StringVar()
     colours_cmbox = ttk.Combobox(Top, width=30, textvariable=colour)
     colours_cmbox["values"] = [i for i in colours]
@@ -561,11 +581,11 @@ def open_top_level_send():
         Top.destroy()
 
     # Check button..etc GUI
-    validate_btn = tk.Button(Top, text="Validate", command=validate)
+    validate_btn = ttk.Button(Top, text="Validate", command=validate)
     check_frnds = ttk.Checkbutton(
         Top, text="Send to all your friends", variable=ch, onvalue=1, offvalue=0
     )
-    entry_message = tk.Entry(Top, width=50)
+    entry_message = ttk.Entry(Top, width=50)
     check_frnds.pack()
     entry_message.pack()
     validate_btn.pack()
@@ -602,6 +622,7 @@ submenu2.add_command(label="Change colour", command=open_top_levl_colours)
 submenu2.add_command(label="send message to all", command=open_top_level_send)
 submenu.add_command(label="logout", command=win.quit)
 # Taking photo from path
+photo = tk.PhotoImage(file="/home/yassine/Desktop/python/samples/PNG/Send.png")
 name = ""
 identification = 0
 
@@ -635,20 +656,20 @@ def send_message():
 # Doing other important GUI
 frame_down = tk.Frame(win)
 frame_frnds = tk.Frame(win)
-lbl = tk.Label(win, text="Welcome!!")
-entry_text = tk.Entry(frame_down, width=50)
-text_bfr_entry = tk.Label(frame_down, text="Text")
-send_butn = tk.Button(frame_down, text='Send', command=send_message)
-frnd_img = tk.Button(frame_frnds, image="", relief=tk.SUNKEN)
-Label_warning = tk.Label(
+lbl = ttk.Label(win, text="Welcome!!")
+entry_text = ttk.Entry(frame_down, width=50)
+text_bfr_entry = ttk.Label(frame_down, text="Text")
+send_butn = ttk.Button(frame_down, command=send_message)
+frnd_img = ttk.Button(frame_frnds, image="")
+Label_warning = ttk.Label(
     win,
     text="""This can get your account temporarily blocked for spam! 
     (You should execute the script at max about 10 times a day)""",
-    fg="red3",
+    
 )
 
 num = tk.StringVar()
-lbl_frnds = tk.Label(frame_frnds, text="Friends")
+lbl_frnds = ttk.Label(frame_frnds, text="Friends")
 frnds_cb = ttk.Combobox(frame_frnds, width=20, textvariable=num)
 # Adding friends' to the list
 frnds_cb["values"] = [user.name for user in users]
@@ -666,5 +687,4 @@ lbl_frnds.pack(side=tk.RIGHT)
 entry_text.pack(side=tk.LEFT)
 frnd_img.pack(side=tk.RIGHT)
 send_butn.pack()
-
 win.mainloop()
