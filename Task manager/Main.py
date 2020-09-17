@@ -1,6 +1,7 @@
 import datetime
 import tkinter as tk
 from tkinter import ttk
+from tkinter import messagebox as mb
 from ttkthemes import ThemedStyle
 import time
 import psutil
@@ -97,7 +98,7 @@ def gray_in_out(smthng):
 
 def hide_buttone():
     global process_names, process_pid, cpu_percent, started_time, used_memory, nicer_memory
-    print("Hiden, to stop the program, press Ctrl+C or Ctrl+Z")
+    print("Hidden, to stop the program, press Ctrl+C or Ctrl+Z")
     win1.withdraw()
     load_infos()
     for i in range(len(process_names)):
@@ -105,6 +106,12 @@ def hide_buttone():
             s.Popen(['/usr/bin/aplay', "swiftly.wav"], shell=False)
             s.Popen(['notify-send', "Cpu overusage", "-i", 'face-sad',
                      "Process {} is taking {} of total CPU\n Please close it".format(process_names[i], cpu_percent[i])])
+            res = mb.askquestion("CPU overusage", message="Process {} is taking {} of total CPU\n Do you want to close it?".format(process_names[i], cpu_percent[i]))
+            if res == "yes":
+                Process = psutil.Process(process_pid[i])
+                Process.kill()
+            else: 
+                print("Deletion cancelled")
     time.sleep(5)
     hide_buttone()
     # win1.deiconify()
@@ -234,21 +241,3 @@ tree.pack(fill=tk.BOTH)
 end_button.pack(side=tk.LEFT)
 hide_button.pack(side=tk.RIGHT)
 win1.mainloop()
-######Useless junk######
-"""
-def reselect():
-    try:
-        selected_row = tree.selection()[0]
-        Pid = tree.set(selected_row)["1"]
-        name = tree.set(selected_row)["2"]
-        Cpu = tree.set(selected_row)["3"]
-        started = tree.set(selected_row)["4"]
-        memory = tree.set(selected_row)["5"]
-        print(Pid, name, Cpu, started, memory)
-        index = tree.index(selected_row)
-        child_index = tree.get_children()[index]
-        tree.selection_set(child_index)
-    except:
-        pass
-    tree.after(1500, reselect)
-"""
