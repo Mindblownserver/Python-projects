@@ -1,12 +1,15 @@
+#!/usr/bin/env python3
+import pkg_resources.py2_warn
 import datetime
-import tkinter as tk
-from tkinter import ttk
-from tkinter import messagebox as mb
-from ttkthemes import ThemedStyle
-import time
-import psutil
-import subprocess as s
+import os
 import random
+import subprocess as s
+import time
+import tkinter as tk
+from tkinter import messagebox as mb
+from tkinter import ttk
+import psutil
+from ttkthemes import ThemedStyle
 
 process_pid = []
 process_names = []
@@ -14,12 +17,15 @@ cpu_percent = []
 started_time = []
 used_memory = []
 nicer_memory = []
-
+cancelled_processes = []
+Profiles = []
+path = "Profiles"
+Loaded_prof = []
 # Setting up Main window
 win1 = tk.Tk()
 style2 = ttk.Style(win1)
 style2.configure('Treeview', rowheight=1000)
-win1.title("System monitor")
+win1.title("Pymanager | version: 1.1")
 win1.geometry('900x650')
 style = ThemedStyle(win1)
 style.set_theme('breeze')
@@ -96,25 +102,52 @@ def gray_in_out(smthng):
 # Hide and ready to push notifications!
 
 
+x = 0
+
 def hide_buttone():
-    global process_names, process_pid, cpu_percent, started_time, used_memory, nicer_memory
+    global process_names, process_pid, cpu_percent, started_time, used_memory, nicer_memory, Loaded_prof, x
     print("Hidden, to stop the program, press Ctrl+C or Ctrl+Z")
     win1.withdraw()
     load_infos()
     for i in range(len(process_names)):
-        if cpu_percent[i] > 50:
-            s.Popen(['/usr/bin/aplay', "swiftly.wav"], shell=False)
-            s.Popen(['notify-send', "Cpu overusage", "-i", 'face-sad',
-                     "Process {} is taking {} of total CPU\n Please close it".format(process_names[i], cpu_percent[i])])
-            res = mb.askquestion("CPU overusage", message="Process {} is taking {} of total CPU\n Do you want to close it?".format(process_names[i], cpu_percent[i]))
-            if res == "yes":
-                Process = psutil.Process(process_pid[i])
-                Process.kill()
-            else: 
-                print("Deletion cancelled")
+        if x == 0:
+            place = os.getcwd()
+            t = s.Popen(['notify-send', "Pymanager",
+                         "Hidden, to stop the program, press Ctrl+C or Ctrl+Z", "-i", "{}/index.ico".format(place)])
+
+        try:
+            if cpu_percent[i] > 50:
+                if process_names[i] not in cancelled_processes:
+                    s.Popen(['/usr/bin/aplay', "swiftly.wav"])
+                    s.Popen(['notify-send', "Cpu overusage", "-i", 'face-sad',
+                             "Process {} is taking {} of total CPU\n Please close it".format(process_names[i], cpu_percent[i])])
+                    res = mb.askquestion("CPU overusage", message="Process {} is taking {} of total CPU\n Do you want to close it?".format(
+                        process_names[i], cpu_percent[i]))
+                    if res == "yes":
+                        Process = psutil.Process(process_pid[i])
+                        Process.kill()
+                    else:
+                        print("Added element to list!")
+                        cancelled_processes.append(process_names[i])
+                        with open("Profiles/{}.ini".format(Loaded_prof[0]), "a+") as file:
+                            file.write("\n")
+                            file.write("{}".format(process_names[i]))
+                else:
+                    print("Already cancelled")
+        except:
+            pass
+        x += 1
     time.sleep(5)
     hide_buttone()
+
+
     # win1.deiconify()
+# Tabs
+tab_controle = ttk.Notebook(win1)
+tab1 = ttk.Frame(tab_controle)
+tab2 = ttk.Frame(tab_controle)
+tab_controle.add(tab1, text="Processes")
+tab_controle.add(tab2, text="Profile")
 
 
 # Menu
@@ -194,10 +227,106 @@ def popup(event):
     else:
         pass
 
+# Add profiles
 
-frame_tree = ttk.Frame(win1)
-frame_vsb = ttk.Frame(win1)
-frame_button = ttk.Frame(win1)
+
+def add_profiles():
+    text = cb.get()
+    if text not in cb["values"]:
+        print("not in list")
+        print("Profile "+text+" is successfully added")
+        with open("{}/{}.ini".format(path, text), "a+") as file:
+            file.write("[Properties]")
+            file.write(
+                "\n \n Profile_name= {} \n \n [Processes not to notify about]".format(text))
+        option = list(cb["values"])
+        option.append(text)
+        cb["values"] = option
+    else:
+        print("Already exists")
+
+
+# Remove profiles
+
+
+def rmv_profiles():
+    text = cb.get()
+    items = list(cb["values"])
+    items.remove(text)
+    cb["values"] = items
+    os.remove("{}/{}.ini".format(path, text))
+    cb.current(0)
+
+# Load profile
+
+
+def load_btn():
+    global Loaded_prof, cancelled_processes
+    cancel = []
+    Loaded_prof.clear()
+    text = cb.get()
+    print("Loading "+text+" profile...")
+    lbl = ttk.Label(tab2, text="{} profile is loaded".format(text))
+    Loaded_prof.append(text)
+    sep.pack(expand=True, fill=tk.X, anchor=tk.N)
+    lbl.pack(side=tk.TOP, anchor=tk.N)
+    with open("Profiles/{}.ini".format(text), "r") as file:
+        reader = file.read()
+        red = reader.splitlines()
+        for line in red:
+            cancel.append(line)
+    for i in cancel:
+        i.strip(r'\n')
+        cancelled_processes.append(i)
+    print(cancelled_processes)
+
+
+# Create profile file
+
+
+def create_file_load_profiles(path):
+    try:
+        os.mkdir(path)
+    except FileExistsError:
+        print("File already exist :)")
+    list_dir = os.listdir(path)
+    option = list(cb["values"])
+    for i in list_dir:
+        text = os.path.splitext("{}".format(i))[0]
+        if text not in option:
+            option.append(text)
+        else:
+            pass
+    cb['values'] = option
+
+# Checking
+
+
+def check_rmv():
+    path = "Profiles"
+    list_dir = os.listdir(path)
+    if len(list_dir) == 0:
+        Delete_btn['state'] = tk.DISABLED
+        load_button['state'] = tk.DISABLED
+    elif len(list_dir) != 0:
+        Delete_btn['state'] = tk.NORMAL
+        load_button['state'] = tk.NORMAL
+    text = cb.get()
+    option = list(cb["values"])
+    if cb.get() == "<<Select-profile>>":
+        Delete_btn['state'] = tk.DISABLED
+        load_button['state'] = tk.DISABLED
+    elif text not in option:
+        Delete_btn['state'] = tk.DISABLED
+        load_button['state'] = tk.DISABLED
+
+    frame_UP.after(250, check_rmv)
+
+
+# Total composents :) tab 1
+frame_tree = ttk.Frame(tab1)
+frame_vsb = ttk.Frame(tab1)
+frame_button = ttk.Frame(tab1)
 
 vsb = ttk.Scrollbar(frame_vsb, orient="vertical")
 tree = ttk.Treeview(frame_tree, height=50, yscrollcommand=vsb.set)
@@ -221,6 +350,33 @@ tree.heading("5", text="Memory")
 vsb.config(command=tree.yview)
 tree.config(yscrollcommand=vsb.set)
 
+# Total composents of tab 2 :I
+
+frame_UP = ttk.Frame(tab2)
+frame_prop = ttk.Frame(tab2)
+profile_label = ttk.Label(frame_UP, text="Profile")
+cb = ttk.Combobox(frame_UP, width=30)
+
+cb["values"] = ("<<Select-profile>>")
+
+cb.current(0)
+Add_btn = ttk.Button(frame_UP, text="Add", command=add_profiles)
+Delete_btn = ttk.Button(frame_UP, text="Delete", command=rmv_profiles)
+load_button = ttk.Button(frame_UP, text="Load", command=load_btn)
+sep = ttk.Separator(tab2, orient=tk.HORIZONTAL)
+
+frame_UP.pack(anchor=tk.NW)
+Delete_btn.pack(side=tk.RIGHT, padx=10, pady=10)
+load_button.pack(side=tk.RIGHT, padx=10, pady=10)
+Add_btn.pack(side=tk.RIGHT, padx=10, pady=10)
+cb.pack(side=tk.RIGHT, padx=10, pady=10)
+
+profile_label.pack(side=tk.RIGHT, padx=10, pady=10)
+
+# Actions!
+
+create_file_load_profiles(path)
+frame_UP.after(500, check_rmv)
 load_infos()
 
 for i in range(len(process_pid)):
@@ -233,11 +389,13 @@ refresh()
 tree.bind("<Button-3>", popup)
 tree.bind("<Button-1>", gray_in_out)
 
+tab_controle.pack(expand=1, fill="both")
 frame_button.pack(side=tk.BOTTOM, fill=tk.X)
 frame_vsb.pack(side=tk.RIGHT, fill=tk.BOTH)
 frame_tree.pack(fill=tk.BOTH)
 vsb.pack(side=tk.RIGHT, fill=tk.BOTH)
 tree.pack(fill=tk.BOTH)
 end_button.pack(side=tk.LEFT)
+
 hide_button.pack(side=tk.RIGHT)
 win1.mainloop()
