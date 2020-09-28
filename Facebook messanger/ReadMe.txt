@@ -1,6 +1,6 @@
-Quick note: Due to the new protocole that facebook updated last week, this messenger won't be able to send messages. 
+~~Quick note: Due to the new protocole that facebook updated last week, this messenger won't be able to send messages~~
 
 
-But, I'm searching on a way to make this project up to date
+It's fixed!!
+I found a way to fix this project, it's **now** available for you to use :)
 
-So stay tuned ! :)
