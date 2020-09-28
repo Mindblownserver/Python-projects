@@ -1,23 +1,13 @@
-#!/usr/bin/env python3
-
-# Importing some stuff
 import fbchat
-from fbchat import Client
+import tkinter as tk
 from ttkthemes import ThemedStyle
-
-try:
-    import tkinter as tk
-    from tkinter import ttk
-except ImportError:
-    import Tkinter as tk
-    from Tkinter import ttk
+from tkinter import ttk
 import requests
 import os
 from io import BytesIO
 from PIL import ImageTk, Image
 import time
-
-user_id = 0
+import random
 colours = [
     "snow",
     "ghost white",
@@ -499,192 +489,221 @@ colours = [
     "gray98",
     "gray99",
 ]
-# Taking your account information
-wn = tk.Tk()
-wn.title('Information')
-name = ''
-password = ''
-def submit():
-    global name, password
-    name = name_entry.get()
-    password = pass_entry.get()
-    wn.after(500, wn.destroy)
 
-name_entry=ttk.Entry(wn)
+
+def main_window(name, client, users):
+    win = tk.Tk()
+    win.title(name)
+    style = ThemedStyle(win)
+    style.set_theme('breeze')
+    win.geometry("750x670")
+    win.resizable(False, False)
+
+    # Doing colors , you can't really be sent coloured though :(
+    def open_top_levl_colours():
+        Top = tk.Toplevel(win)
+        Top.geometry("300x400")
+        Top.resizable(False, False)
+        color = ""
+
+        def validate():
+            global color
+            color = colours_cmbox.get()
+            print(color)
+            entry_text["foreground"] = color
+            Top.destroy()
+
+        validate_btn = ttk.Button(Top, text="Validate", command=validate)
+        colour = tk.StringVar()
+        colours_cmbox = ttk.Combobox(Top, width=30, textvariable=colour)
+        colours_cmbox["values"] = [i for i in colours]
+
+        validate_btn.pack()
+        colours_cmbox.current()
+        colours_cmbox.pack()
+        Top.mainloop
+
+    # Doing send all function
+
+    def open_top_level_send():
+        Top = tk.Toplevel(win)
+        Top.geometry("300x400")
+        Top.resizable(False, False)
+        ch = tk.BooleanVar()
+
+        def validate():
+            if ch.get() == 1:
+                print("Checked")
+                for i in [user.uid for user in users]:
+                    send = client.sendMessage(entry_message.get(), thread_id=i)
+                    if send:
+                        print("sent successfully", end="\n" * 3)
+                    print("Waiting")
+                    time.sleep(random.randint(5, 15))
+                    print("Finished waiting!")
+
+            elif ch.get() == 0:
+                print("Unchecked")
+                print("nothing to send.. :(")
+            Top.destroy()
+
+        # Check button..etc GUI
+        validate_btn = ttk.Button(Top, text="Validate", command=validate)
+        check_frnds = ttk.Checkbutton(
+            Top, text="Send to all your friends", variable=ch, onvalue=1, offvalue=0
+        )
+        entry_message = ttk.Entry(Top, width=50)
+        check_frnds.pack()
+        entry_message.pack()
+        validate_btn.pack()
+        Top.mainloop
+
+    # about app GUI
+
+    def open_top_level_about():
+        Top = tk.Toplevel(win)
+        Top.geometry("450x400")
+        Top.resizable(False, False)
+        Top.title("about..")
+        label = tk.Label(
+            Top,
+            text="""This app was created by Mohammed Yassine Kharrat 
+            in python using Tkinter module as GUI and fbchat as api""",
+            foreground="pale violet red",
+        )
+        label.pack()
+        Top.mainloop
+
+    # Preparing Menu
+    Menubar = tk.Menu(win)
+    win.config(menu=Menubar)
+    submenu = tk.Menu(Menubar, tearoff=0)
+    submenu2 = tk.Menu(Menubar, tearoff=0)
+    submenu3 = tk.Menu(Menubar, tearoff=0)
+    Menubar.add_cascade(label="account", menu=submenu)
+    Menubar.add_cascade(label="Text", menu=submenu2)
+    Menubar.add_cascade(label="About", menu=submenu3)
+    submenu3.add_command(label="about app", command=open_top_level_about)
+    submenu2.add_command(label="Change colour", command=open_top_levl_colours)
+    submenu2.add_command(label="send message to all",
+                         command=open_top_level_send)
+    submenu.add_command(label="logout", command=win.quit)
+    # Taking photo from path
+    name = ""
+    identification = 0
+
+    # Check the friend function
+    def check_cmbo(event):
+        global name, identification
+        friende = frnds_cb.get()
+        index1 = [user.name for user in users].index(friende)
+        print(index1)
+        identification = [user.uid for user in users][index1]
+        print(identification)
+        # check for profile pic
+        print([user.photo for user in users][index1])
+        img_url = [user.photo for user in users][index1]
+        response = requests.get(img_url)
+        img_data = response.content
+        img = ImageTk.PhotoImage(Image.open(BytesIO(img_data)))
+        frnd_img["image"] = img
+        frnd_img.image = img
+
+    # send message function
+
+    def send_message():
+        friende = frnds_cb.get()
+        index1 = [user.name for user in users].index(friende)
+        text = entry_text.get()
+        print(text)
+        sent = client.sendMessage(
+            text, thread_id=[user.uid for user in users][index1])
+        if sent:
+            print('sent successfully', end='\n'*3)
+        entry_text.delete(0, tk.END)
+
+    # Doing other important GUI
+    frame_down = tk.Frame(win)
+    frame_frnds = tk.Frame(win)
+    lbl = ttk.Label(win, text="Welcome!!")
+    entry_text = ttk.Entry(frame_down, width=50)
+    text_bfr_entry = ttk.Label(frame_down, text="Text")
+    send_butn = ttk.Button(frame_down, text="Send", command=send_message)
+    frnd_img = ttk.Button(frame_frnds)
+    Label_warning = ttk.Label(
+        win,
+        text="""This can get your account temporarily blocked for spam! 
+        (You should execute the script at max about 10 times a day)""",
+
+    )
+
+    num = tk.StringVar()
+    lbl_frnds = ttk.Label(frame_frnds, text="Friends")
+    frnds_cb = ttk.Combobox(frame_frnds, width=20, textvariable=num)
+    # Adding friends' to the list
+    frnds_cb["values"] = [user.name for user in users]
+    frnds_cb.current()
+    frnds_cb.bind("<<ComboboxSelected>>", check_cmbo)
+    # Packing or displaying them
+
+    lbl.pack()
+    Label_warning.pack()
+    frame_frnds.pack(side=tk.BOTTOM)
+    frame_down.pack(side=tk.BOTTOM)
+    text_bfr_entry.pack(side=tk.LEFT)
+    frnds_cb.pack(side=tk.LEFT)
+    lbl_frnds.pack(side=tk.RIGHT)
+    entry_text.pack(side=tk.LEFT)
+    frnd_img.pack(side=tk.RIGHT)
+    send_butn.pack()
+    win.mainloop()
+
+
+wn = tk.Tk()
+wn.title("Please insert your facebook account")
+wn.geometry("450x150")
+style = ThemedStyle(wn)
+style.set_theme('breeze')
+
+
+def submit():
+    name = name_entry.get()
+    paswd = pass_entry.get()
+    if name == 'Gmail' or paswd == 'Facebook password':
+        print("Put your info, silly ")
+    else:
+        wn.after(500, wn.destroy)
+        try:
+            client = fbchat.Client(name, paswd)
+        except fbchat._exception.FBchatUserError:
+            print("stop, wrong password or gmail")
+            exit()
+        Users = client.fetchAllUsers()
+        print(Users)
+        main_window("Facebook messenger", client, Users)
+
+
+def dont_show():
+    pass_entry["show"] = '\u2022'
+
+
+name_entry = ttk.Entry(wn)
 pass_entry = ttk.Entry(wn)
 sumbit_btn = ttk.Button(wn, text='confirm', command=submit)
-name_entry.pack()
-pass_entry.pack()
-sumbit_btn.pack(side=tk.BOTTOM)
-name_entry.insert(3, "Facebook username")
+
+name_entry.insert(3, "Gmail")
 pass_entry.insert(3, 'Facebook password')
+pass_entry.after(1000, dont_show)
+
+name_entry.pack(fill=tk.X, pady=10)
+pass_entry.pack(fill=tk.X, pady=10)
+sumbit_btn.pack(side=tk.LEFT)
+
 wn.mainloop()
-client = fbchat.Client(name, password)
-users = client.fetchAllUsers()
-print(len([user.name for user in users]))
 
-# Making the window
-win = tk.Tk()
-win.title(name)
-style = ThemedStyle(win)
-style.set_theme('breeze')
-win.geometry("750x670")
-win.resizable(False, False)
-
-# Doing colors , you can't really be sent coloured though :(
-def open_top_levl_colours():
-    Top = tk.Toplevel(win)
-    Top.geometry("300x400")
-    Top.resizable(False, False)
-    color = ""
-
-    def validate():
-        global color
-        color = colours_cmbox.get()
-        print(color)
-        entry_text["fg"] = color
-        Top.destroy()
-
-    validate_btn = ttk.Button(Top, text="Validate", command=validate)
-    colour = tk.StringVar()
-    colours_cmbox = ttk.Combobox(Top, width=30, textvariable=colour)
-    colours_cmbox["values"] = [i for i in colours]
-
-    validate_btn.pack()
-    colours_cmbox.current()
-    colours_cmbox.pack()
-    Top.mainloop
-
-
-times = 1
-
-# Doing send all function
-def open_top_level_send():
-    Top = tk.Toplevel(win)
-    Top.geometry("300x400")
-    Top.resizable(False, False)
-    ch = tk.BooleanVar()
-    global times
-
-    def validate():
-        global times
-        if ch.get() == 1:
-            print("Checked")
-            for i in [user.uid for user in users]:
-                client.send(fbchat.models.Message(entry_message.get()), i)
-                time.sleep(0.13 * times)
-                times += 0.2    
-
-        elif ch.get() == 0:
-            print("Unchecked")
-            print("nothing to send.. :(")
-        Top.destroy()
-
-    # Check button..etc GUI
-    validate_btn = ttk.Button(Top, text="Validate", command=validate)
-    check_frnds = ttk.Checkbutton(
-        Top, text="Send to all your friends", variable=ch, onvalue=1, offvalue=0
-    )
-    entry_message = ttk.Entry(Top, width=50)
-    check_frnds.pack()
-    entry_message.pack()
-    validate_btn.pack()
-    Top.mainloop
-
-
-# about app GUI
-def open_top_level_about():
-    Top = tk.Toplevel(win)
-    Top.geometry("450x400")
-    Top.resizable(False, False)
-    Top.title("about..")
-    label = tk.Label(
-        Top,
-        text="""This app was created by Mohammed Yassine Kharrat 
-        in python using Tkinter module as GUI and fbchat as api""",
-        fg="pale violet red",
-    )
-    label.pack()
-    Top.mainloop
-
-
-# Preparing Menu
-Menubar = tk.Menu(win)
-win.config(menu=Menubar)
-submenu = tk.Menu(Menubar, tearoff=0)
-submenu2 = tk.Menu(Menubar, tearoff=0)
-submenu3 = tk.Menu(Menubar, tearoff=0)
-Menubar.add_cascade(label="account", menu=submenu)
-Menubar.add_cascade(label="Text", menu=submenu2)
-Menubar.add_cascade(label="About", menu=submenu3)
-submenu3.add_command(label="about app", command=open_top_level_about)
-submenu2.add_command(label="Change colour", command=open_top_levl_colours)
-submenu2.add_command(label="send message to all", command=open_top_level_send)
-submenu.add_command(label="logout", command=win.quit)
-# Taking photo from path
-photo = tk.PhotoImage(file="/home/yassine/Desktop/python/samples/PNG/Send.png")
-name = ""
-identification = 0
-
-# Check the friend function
-def check_cmbo(event):
-    global name, identification
-    friende = frnds_cb.get()
-    index1 = [user.name for user in users].index(friende)
-    print(index1)
-    identification = [user.uid for user in users][index1]
-    print(identification)
-    # check for profile pic
-    print([user.photo for user in users][index1])
-    img_url = [user.photo for user in users][index1]
-    response = requests.get(img_url)
-    img_data = response.content
-    img = ImageTk.PhotoImage(Image.open(BytesIO(img_data)))
-    frnd_img["image"] = img
-    frnd_img.image = img
-
-
-# send message function
-def send_message():
-
-    text = entry_text.get()
-    print(text)
-    client.send(fbchat.models.Message(text), identification)
-    entry_text.delete(0, tk.END)
-
-
-# Doing other important GUI
-frame_down = tk.Frame(win)
-frame_frnds = tk.Frame(win)
-lbl = ttk.Label(win, text="Welcome!!")
-entry_text = ttk.Entry(frame_down, width=50)
-text_bfr_entry = ttk.Label(frame_down, text="Text")
-send_butn = ttk.Button(frame_down, command=send_message)
-frnd_img = ttk.Button(frame_frnds, image="")
-Label_warning = ttk.Label(
-    win,
-    text="""This can get your account temporarily blocked for spam! 
-    (You should execute the script at max about 10 times a day)""",
-    
-)
-
-num = tk.StringVar()
-lbl_frnds = ttk.Label(frame_frnds, text="Friends")
-frnds_cb = ttk.Combobox(frame_frnds, width=20, textvariable=num)
-# Adding friends' to the list
-frnds_cb["values"] = [user.name for user in users]
-frnds_cb.current()
-frnds_cb.bind("<<ComboboxSelected>>", check_cmbo)
-# Packing or displaying them
-
-lbl.pack()
-Label_warning.pack()
-frame_frnds.pack(side=tk.BOTTOM)
-frame_down.pack(side=tk.BOTTOM)
-text_bfr_entry.pack(side=tk.LEFT)
-frnds_cb.pack(side=tk.LEFT)
-lbl_frnds.pack(side=tk.RIGHT)
-entry_text.pack(side=tk.LEFT)
-frnd_img.pack(side=tk.RIGHT)
-send_butn.pack()
-win.mainloop()
+'''
+client = fbchat.Client('mohammed.kharrat3@gmail.com', 'fakhri123')
+Users = client.fetchAllUsers()
+print(Users)
+client.sendMessage("Hello", thread_id=)
+'''
