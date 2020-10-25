@@ -13,6 +13,9 @@ All I can say is this one word
 (that wasn't a quote, though)
 ## What about past projects
 Don't worry if there's some projects that can't work, I'm currently working on!
+### Malfunctioning apps
+If you find any app that doesn't work the way I described it, Let me know by opening an ***issue.***
+***Thank you*** for your honesty!
 ### Updated projects
 #### Facebook messenger
 **Before you ever advance and continue reading about this project, keep in mind that I hold no responsibilty if you're account get temporarly banned.**
