@@ -1,0 +1,435 @@
+#:import NoTransition kivy.uix.screenmanager.NoTransition
+#:import SlideTransition kivy.uix.screenmanager.SlideTransition 
+#:import STANDARD_INCREMENT kivymd.material_resources.STANDARD_INCREMENT
+
+ScreenManager:
+    id: scrn_mngr_main
+    Loading:
+    First:
+    Tasks_tabs:
+    Create:
+    sets:
+    Geeze:
+
+
+<Loading>:
+    name: "load" 
+    MDSpinner:
+        size_hint: None, None
+        size: dp(46), dp(46)
+        pos_hint: {'center_x': .5, 'center_y': 0.5}
+        active: True
+        on_active: root.loading()
+        palette: [0.8784313725490196, 0.9058823529411765, 0.40784313725490196, 1],[0.0, 0.5882352941176471, 0.5333333333333333, 1]
+
+        
+<First>:
+    name: "First_scrn"
+    Carousel:
+        direction: 'right'
+        AsyncImage:
+            source: '1.png'
+        AsyncImage:
+            source: '2.png'
+        AsyncImage:
+            source: '3.png'
+            MDRaisedButton:
+                text: "[b]Next[/b]" if app.language == "EN" else "[b]Suivant[/b]"
+                markup: True
+                on_release:
+                    root.manager.transition = NoTransition() 
+                    root.manager.current = "Main"
+                    root.manager.transition = SlideTransition()
+                
+<Tab_active>:
+    ScrollView:
+        MDList:
+            id: list
+                
+<Tab_completed>:
+    ScrollView:
+        MDList:
+            id: scroll
+
+<ListItemWithCheckboxActive>:
+    id: Tasks
+    RightCheckbox:
+        id: check
+        on_active: root.on_checkbox_Active(*args)
+    edit:
+        icon: "pencil"
+        theme_text_color: "Custom"
+        text_color: app.theme_cls.primary_color
+        on_release: 
+            root.go_to_edit()
+            app.root.transition = NoTransition()
+            app.root.current = "Edit"
+            
+
+<ListItemWithCheckboxCompleted>:
+    id: finisihed
+    RightCheckbox:
+        id: checked
+        active: True
+        on_active: root.on_checkbox_Active(*args)
+    edit:
+        icon: "check"
+        theme_text_color: "Custom"
+        text_color: app.theme_cls.primary_color
+
+<Tasks_tabs>:
+    name: "Main"    
+    BoxLayout:
+        id: Allll
+        orientation:"vertical"
+        MDToolbar:
+            id: Title
+            title:"Tasks" if app.language =="EN" else "Tâches"
+            specific_text_color: 1,1,1,1
+            left_action_items: [["exit-run", lambda x: exit()]]
+            MDIconButton:
+                id: tool
+                icon: 'dots-vertical'
+                theme_text_color: 'Custom'
+                theme_text_color: "Custom"
+                text_color: 1, 1, 1, 1
+                #md_bg_color: app.theme_cls.primary_color
+                on_release: root.menu.open()
+        MDTabs:
+            id: tab_container
+            on_tab_switch: root.on_tab_switch(*args)
+        FloatLayout:
+            size_hint_y: None
+            height: 50
+            MDFloatingActionButton:
+                md_bg_color: app.theme_cls.primary_color
+                id: plus
+                x: root.width - (root.width / 4)
+                icon:"plus"
+                pos: (45,95)
+                theme_text_color: "Custom"
+                text_color: 1, 1, 1, 1
+                rotation_root_button: True
+                on_release: 
+                    root.manager.transition.direction = "right" 
+                    root.manager.current = "Create"
+<Create>:
+    name: "Create"
+    id: create
+    BoxLayout:
+        orientation:"vertical"
+        MDToolbar:
+            title:"Create task" if app.language =="EN" else "Créez des tâches"
+            specific_text_color: 1,1,1,1
+            MDIconButton:
+                id: tool
+                icon: 'arrow-right'
+                theme_text_color: 'Custom'
+                theme_text_color: "Custom"
+                text_color: 1, 1, 1, 1
+                #md_bg_color: app.theme_cls.primary_color
+                on_release: 
+                    root.manager.transition.direction = "left"
+                    root.manager.current = "Main"
+        ScrollView:
+            size: self.size
+            MDList:
+                padding: 25
+                spacing: 20
+                
+                MDTextField:
+                    id: name
+                    hint_text: "Task's name" if app.language == "EN" else "Nom de la tâche"
+                    required: True
+                    pos_hint_x: None
+                    size_hint_y: None
+                    size_hint_x: None
+                    width: create.size[0]/1.2
+                    focus: True
+                    helper_text_mode: "on_error"
+                    helper_text: "Task's name is required" if app.language == "EN" else "Nom de la tâche obligatoire"
+                    mode: "rectangle" 
+                    on_text_validate: des.focus = True   
+                BoxLayout:
+                BoxLayout:
+                BoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    size_hint_x: None
+                    width: create.size[0]/1
+                    MDTextField:
+                        id: des
+                        hint_text: "Task's Details" if app.language == "EN" else "Details de la tâche "
+                        helper_text: "Optional"
+                        helper_text_mode: "on_focus"
+                        size_hint_y: None
+                        size_hint_x: None
+                        width: create.size[0]/1.2
+                        mode: "rectangle"  
+                        on_text_validate: Date.focus = True
+                
+                BoxLayout:
+                BoxLayout:
+                BoxLayout:
+                    id: Box
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    size_hint_x: None
+                    width: create.size[0]/1
+                    MDTextField:
+                        hint_text: "Date (default is today)" if app.language == "EN" else "Date (aujourd'hui par defaut)"
+                        id: Date
+                        readonly: True
+                        size_hint_y: None
+                        width: Box.size[0]/8
+                        mode: "rectangle"  
+                    MDIconButton:
+                        icon: "calendar"
+                        size_hint_y: None
+                        halign: "left"
+                        #width: Box.size[0]/5 -5
+                        height: 53
+                        theme_text_color: "Custom"
+                        text_color: app.theme_cls.primary_color
+                        #md_bg_color: app.theme_cls.primary_color
+                        on_release: root.date_picker()
+                
+                BoxLayout:
+                BoxLayout:
+                BoxLayout:
+                    id: Box1
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    size_hint_x: None
+                    width: create.size[0]/1
+                    MDTextField:
+                        id: time
+                        hint_text: "Time (default is 00:00)" if app.language == "EN" else "Temps (00:00 par defaut)"
+                        readonly: True
+                        size_hint_y: None
+                        width: Box1.size[0]/8
+                        mode: "rectangle"  
+                        line_height: 10
+                    MDIconButton:
+                        icon: "clock"
+                        size_hint_y: None
+                        #width: Box1.size[0]/5 -5
+                        height: 53
+                        theme_text_color: "Custom"
+                        text_color: app.theme_cls.primary_color
+                        #md_bg_color: app.theme_cls.primary_color
+                        on_release: root.time_picker()
+        BoxLayout:
+            orientation: "horizontal"
+            size_hint_y: None
+            height: 36
+            MDRaisedButton:
+                text: "Create" if app.language == "EN" else "Créer"
+                text_color: 1, 1, 1, 1
+                #md_bg_color: app.theme_cls.primary_color
+                on_release: 
+                    root.create()
+                    root.manager.transition.direction = "left"
+                    root.manager.current = "Main"
+
+            MDFlatButton:
+                text: "Cancel" if app.language == "EN" else "Annuler"
+                text_color: app.theme_cls.primary_color
+                #md_bg_color: 1,1,1,1
+                on_release: 
+                    root.cancel()
+                    root.manager.transition.direction = "left"
+                    root.manager.current = "Main"
+            
+<sets>:
+    name: "settings"
+    id: main
+    BoxLayout:
+        orientation: "vertical"
+        MDToolbar:
+            title:"Settings" if app.language =="EN" else "Paramètres"
+            specific_text_color: 1,1,1,1
+            MDIconButton:
+                icon: 'arrow-left'
+                theme_text_color: "Custom"
+                text_color: 1, 1, 1, 1
+                #md_bg_color: app.theme_cls.primary_color
+                on_release:
+                    root.get_color()
+                    root.manager.transition.direction = 'right' 
+                    root.manager.current = "Main"
+                    #root.manager.transition.direction = 'left'
+        ScrollView:
+            MDList:
+                id: sets_list
+                padding: 10
+                TwoLineAvatarListItem:
+                    id: usr
+                    text: "User" if app.language == "EN" else "Utilisateur"
+                    secondary_text: "Since " if app.language == "EN" else "Depuis"
+                    ImageLeftWidget:
+                        source: "usr.jpg"
+                
+                OneLineAvatarListItem:
+                    id: num
+                    IconLeftWidget:
+                        icon: "clipboard-list"
+                        theme_text_color: 'Custom'
+                        text_color: app.theme_cls.primary_color
+                OneLineAvatarIconListItem:
+                    text: "Theme" if app.language == "EN" else "Thème"
+                    IconLeftWidget:
+                        id: theme
+                        icon: "border-color"
+                        theme_text_color: 'Custom'
+                        text_color: app.theme_cls.primary_color
+                    IconRightWidget:
+                        icon: "select-color"
+                        theme_text_color: 'Custom'
+                        text_color: app.theme_cls.primary_color
+                        on_release: root.show_theme_picker()
+                ListItemWithSwitch:
+                    text: "Notification"
+                TwoLineIconListItem:
+                    id: lang
+                    text: "Language" if app.language == "EN" else "Langue" 
+                    secondary_text: "English" if app.language == "EN" else "Français"
+                    on_release: root.show_lang_dialogue()
+                    IconLeftWidget:
+                        icon: "earth"
+                        theme_text_color: 'Custom'
+                        text_color: app.theme_cls.primary_color
+                OneLineIconListItem:
+                    text: "Delete my account" if app.language == "EN" else "Supprimer mon compte"
+                    on_release: root.show_alert_dialog()
+                    IconLeftWidget:
+                        icon: "trash-can"
+                        theme_text_color: 'Custom'
+                        text_color: app.theme_cls.primary_color
+                Spacer:
+                Spacer:
+                MDLabel:
+                    text: "from\n[b]Mohammed Yassine Kharrat[/b]" if app.language == "EN" else "Par\n[b]Mohammed Yassine Kharrat[/b]"
+                    markup: True
+                    halign: "center"
+
+<Geeze>:
+    name: "Edit"
+    id: create
+    BoxLayout:
+        orientation:"vertical"
+        MDToolbar:
+            id: Title
+            title:""
+            specific_text_color: 1,1,1,1
+        ScrollView:
+            size: self.size
+            MDList:
+                padding: 25
+                spacing: 20
+                BoxLayout:
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    size_hint_x: None
+                    width: create.size[0]/1
+                    MDTextField:
+                        id: des
+                        hint_text: "Task's Details" if app.language == "EN" else "Details de la tâche "
+                        helper_text: "Optional"
+                        helper_text_mode: "on_focus"
+                        size_hint_y: None
+                        size_hint_x: None
+                        width: create.size[0]/1.2
+                        mode: "rectangle"  
+                        on_text_validate: Date.focus = True
+                BoxLayout:
+                    id: Box
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    size_hint_x: None
+                    width: create.size[0]/1
+                    MDTextField:
+                        hint_text: "Date (default is today)" if app.language == "EN" else "Date (aujourd'hui par defaut)"
+                        id: Date
+                        readonly: True
+                        size_hint_y: None
+                        width: Box.size[0]/8
+                        mode: "rectangle"  
+                    MDIconButton:
+                        icon: "calendar"
+                        size_hint_y: None
+                        halign: "left"
+                        #width: Box.size[0]/5 -5
+                        height: 53
+                        theme_text_color: "Custom"
+                        text_color: app.theme_cls.primary_color
+                        #md_bg_color: app.theme_cls.primary_color
+                        on_release: root.date_picker()
+                
+                BoxLayout:
+                BoxLayout:
+                BoxLayout:
+                    id: Box1
+                    orientation: "horizontal"
+                    size_hint_y: None
+                    size_hint_x: None
+                    width: create.size[0]/1
+                    MDTextField:
+                        id: time
+                        hint_text: "Time (default is 00:00)" if app.language == "EN" else "Temps (00:00 par defaut)"
+                        readonly: True
+                        size_hint_y: None
+                        width: Box1.size[0]/8
+                        mode: "rectangle"  
+                        line_height: 10
+                    MDIconButton:
+                        icon: "clock"
+                        size_hint_y: None
+                        #width: Box1.size[0]/5 -5
+                        height: 53
+                        theme_text_color: "Custom"
+                        text_color: app.theme_cls.primary_color
+                        #md_bg_color: app.theme_cls.primary_color
+                        on_release: root.time_picker()
+        BoxLayout:
+        BoxLayout:
+        BoxLayout:
+            orientation: "horizontal"
+            size_hint_y: None
+            height: 36
+            MDRaisedButton:
+                text: "Edit" if app.language == "EN" else "éditer"
+                text_color: 1, 1, 1, 1
+                md_bg_color: app.theme_cls.primary_color
+                on_release: 
+                    root.edited()
+                    root.manager.current = "Main"
+                    root.manager.transition = SlideTransition()
+            MDFlatButton:
+                text: "Cancel" if app.language == "EN" else "Annuler"
+                text_color: app.theme_cls.primary_color
+                on_release: 
+                    root.cancel()
+                    root.manager.current = "Main"
+                    root.manager.transition = SlideTransition()
+
+#components
+
+<ItemConfirm>
+    on_release: root.set_icon(check)
+    CheckboxLeftWidget:
+        id: check
+        group: "check"
+        on_release: root.set_icon(check)
+<Spacer@Widget>:
+    size_hint_y: None
+    height: "20dp"
+
+<ListItemWithSwitch>:
+    RightSwitch:
+        id: sw
+        on_active: root.switch_handler()
+    IconLeftWidget:
+        icon: "bell"
+        theme_text_color: 'Custom'
+        text_color: app.theme_cls.primary_color
