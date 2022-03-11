@@ -1,7 +1,7 @@
-from textwrap import fill
+from random import choice
 import tkinter as tk
+from tkinter import messagebox
 from ttkthemes import ThemedStyle
-
 # Adjusting window settigns
 window = tk.Tk()
 window.configure(bg ="#3c3d95")
@@ -10,42 +10,29 @@ window.title("Password Generator")
 style = ThemedStyle()
 style.set_theme("breeze")
 window.geometry("700x500")
-
 # Creating widgets
+Symboles = ["}","{","+","_",")","(","^","$","!","@",",",")",">","?","#","/","*","-"]
 purpleFrame_bg = "#242459"
 purple_widg_bg = "#151636"
 wh_text = "white"
 pad_x= 10
 pad_y = 20
-num = 10
 
 frm = tk.Frame(window, background= purpleFrame_bg)
 frm2 = tk.Frame(frm, background= purpleFrame_bg)
 title = tk.Label(frm, text="Password Generator",fg=wh_text ,bg= purpleFrame_bg ,font=("Nueva Std Cond", "16"))
 entr_pass = tk.Entry(frm,width=60, fg=wh_text ,bg=purple_widg_bg, borderwidth=2)
 pass_length = tk.Label(frm2,text="Password length", fg=wh_text ,bg= purpleFrame_bg ,font=("Nueva Std Cond", "10"))
-max_length_entr = tk.Entry(frm2,width=10, textvariable=num)
+max_length_entr = tk.Entry(frm2,width=10, text="16")
 gen_btn = tk.Button(frm, width=52, text="Generate password",relief=tk.FLAT ,fg=wh_text, bg= purple_widg_bg)
 
+
 entr_pass.insert(0,"Type the base of password")
-
 # functions
-def popupwin(passw):
-    #Create a Toplevel window hinting to a popup
-    top= tk.Toplevel(window)
-    top.geometry("500x200")
 
-    lbl = tk.Label(top, text="Your password is")
-    entr= tk.Entry(top, width=60)
-    entr.insert(0, passw)
-    lbl.pack(side=tk.LEFT, padx=pad_x)
-    entr.pack(side=tk.RIGHT, padx=pad_x)
-   
-
-
-def generate(event):
+def generate(event, lim):
     ch = entr_pass.get().upper()
-    print(ch)
+    entr_pass.delete(0, tk.END)
     passw = ""
     n=1
     for i in range(len(ch)):
@@ -57,12 +44,16 @@ def generate(event):
         else:
             passw += ch[i] 
     passw += n*"*"
-    print(passw)
-    popupwin(passw)
+    try:
+        while len(passw) < int(lim):
+            passw += choice(Symboles)
+    except:
+        messagebox.showerror("Invalid number", "You either have typed an invalid number in the maximum length box or left it empty")
+        passw = ""
+    entr_pass.insert(0, passw)
+    
 
-
-gen_btn.bind("<Button-1>", generate)
-
+gen_btn.bind("<Button-1>", lambda x: generate(x,max_length_entr.get()))
 # packing widgets
 frm.pack(pady=100)
 title.pack(pady=pad_y)
